@@ -31,19 +31,14 @@ PRODUCT_PACKAGES += \
     DeskClock \
     DocumentsUI \
     DownloadProviderUi \
-    DSPmanager \
     Email \
     ExactCalculator \
     ExternalStorageProvider \
-    FileManager \
     FusedLocation \
-    Gello \
     InputDevices \
     KeyChain \
     Keyguard \
-    LatinIME \
     Launcher2 \
-    Launcher3 \
     ManagedProvisioning \
     PicoTts \
     PacProcessor \

@@ -96,16 +96,26 @@ include $(BUILD_SYSTEM)/config.mk
 # CTS-specific config.
 -include cts/build/config.mk
 
+# CMTS-specific config.
+-include vendor/cmts/build/config.mk
+
 # This allows us to force a clean build - included after the config.mk
 # environment setup is done, but before we generate any dependencies.  This
 # file does the rm -rf inline so the deps which are all done below will
 # be generated correctly
 include $(BUILD_SYSTEM)/cleanbuild.mk
 
+# Bring in Qualcomm helper macros
+include $(BUILD_SYSTEM)/qcom_utils.mk
+
+# Bring in Mediatek helper macros too
+include $(BUILD_SYSTEM)/mtk_utils.mk
+
 # Include the google-specific config
 -include vendor/google/build/config.mk
 
 VERSION_CHECK_SEQUENCE_NUMBER := 5
+
 -include $(OUT_DIR)/versions_checked.mk
 ifneq ($(VERSION_CHECK_SEQUENCE_NUMBER),$(VERSIONS_CHECKED))
 
@@ -244,9 +254,6 @@ endif
 # Bring in standard build system definitions.
 include $(BUILD_SYSTEM)/definitions.mk
 
-# Bring in Qualcomm helper macros
-include $(BUILD_SYSTEM)/qcom_utils.mk
-
 # Bring in dex_preopt.mk
 include $(BUILD_SYSTEM)/dex_preopt.mk
 
@@ -315,18 +322,17 @@ endif
 
 user_variant := $(filter user userdebug,$(TARGET_BUILD_VARIANT))
 enable_target_debugging := true
-WITH_DEXPREOPT := false
 tags_to_install :=
 ifneq (,$(user_variant))
   # Target is secure in user builds.
-  ADDITIONAL_DEFAULT_PROPERTIES += ro.secure=0
+  ADDITIONAL_DEFAULT_PROPERTIES += ro.secure=1
 
   ifeq ($(user_variant),userdebug)
     # Pick up some extra useful tools
     tags_to_install += debug
   else
     # Disable debugging in plain user builds.
-    enable_target_debugging := true
+    enable_target_debugging :=
   endif
 
   # Turn on Dalvik preoptimization for user builds, but only if not
@@ -369,7 +375,6 @@ endif # !enable_target_debugging
 
 ifeq ($(TARGET_BUILD_VARIANT),eng)
 tags_to_install := debug eng
-WITH_DEXPREOPT := false
 ifneq ($(filter ro.setupwizard.mode=ENABLED, $(call collapse-pairs, $(ADDITIONAL_BUILD_PROPERTIES))),)
   # Don't require the setup wizard on eng builds
   ADDITIONAL_BUILD_PROPERTIES := $(filter-out ro.setupwizard.mode=%,\
@@ -473,7 +478,12 @@ endif
 ifneq ($(ONE_SHOT_MAKEFILE),)
 # We've probably been invoked by the "mm" shell function
 # with a subdirectory's makefile.
+
+# No Makefiles to include if we are performing a mms/short-circuit build. Only
+# the targets mentioned by main.mk and tasks/* are built (kernel, boot.img etc)
+ifneq ($(ONE_SHOT_MAKEFILE),__none__)
 include $(ONE_SHOT_MAKEFILE)
+endif
 # Change CUSTOM_MODULES to include only modules that were
 # defined by this makefile; this will install all of those
 # modules as a side-effect.  Do this after including ONE_SHOT_MAKEFILE
@@ -504,7 +514,7 @@ ifneq ($(dont_bother),true)
 subdir_makefiles := \
 	$(shell build/tools/findleaves.py $(FIND_LEAVES_EXCLUDES) $(subdirs) Android.mk)
 
-$(foreach mk, $(subdir_makefiles), $(info including $(mk) ...)$(eval include $(mk)))
+$(foreach mk, $(subdir_makefiles), $(eval include $(mk)))
 
 endif # dont_bother
 

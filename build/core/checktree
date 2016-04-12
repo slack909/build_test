@@ -1,4 +1,4 @@
-#!/usr/bin/python -E
+#!/usr/bin/env python -E
 
 from __future__ import print_function
 

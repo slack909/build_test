@@ -394,10 +394,6 @@ define find-other-java-files
 $(call all-java-files-under,$(1))
 endef
 
-define find-other-aidl-files
-	$(call find-subdir-files,$(1) -name "*.aidl" -and -not -name ".*")
-endef
-
 define find-other-html-files
 $(call all-html-files-under,$(1))
 endef
@@ -2001,7 +1997,7 @@ define transform-classes.jar-to-dex
 @mkdir -p $(dir $@)
 $(hide) rm -f $(dir $@)classes*.dex
 $(hide) $(DX) \
-    $(if $(findstring windows,$(HOST_OS)),,-JXms16M -JXmx$(if $(call streq,$(HOST_BITS),32),1024,2048)M) \
+    $(if $(findstring windows,$(HOST_OS)),,-JXms16M -JXmx2048M) \
     --dex --output=$(dir $@) \
     $(if $(NO_OPTIMIZE_DX), \
         --no-optimize) \
